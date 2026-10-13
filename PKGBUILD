@@ -5,7 +5,7 @@
 
 _pkgbase=ghostty-tilix
 _pkgbase2=ghostty
-pkgname=($_pkgbase2-git $_pkgbase2-shell-integration-git $_pkgbase2-nautilus-git)
+pkgname=($_pkgbase2-git $_pkgbase2-shell-integration-git $_pkgbase2-terminfo-git $_pkgbase2-nautilus-git)
 pkgrel=2
 pkgver=1.3.1.r1209.gd560c64
 pkgdesc="Fast, native, feature-rich terminal emulator pushing modern features"
@@ -26,7 +26,7 @@ depends=(bzip2
          oniguruma # libonig.so
          pixman
          wayland libwayland-client.so
-		 nautilus-python
+	 nautilus-python
          zlib)
 makedepends=(blueprint-compiler
              git
@@ -77,9 +77,8 @@ build() {
 }
 
 package_ghostty-git() {
-	# terminfo (g/ghostty) is owned by ncurses
 	depends+=("${_pkgbase2}"-shell-integration-git
-	          ncurses)
+	          "${_pkgbase2}"-terminfo-git)
 	provides=("${pkgname%-git}=$pkgver")
 	conflicts=(${pkgname%-git})
 	optdepends+=("ghostty-nautilus: Open in Ghostty context menu in GNOME Files")
@@ -99,6 +98,16 @@ package_ghostty-shell-integration-git() {
 	cd "$_pkgbase"
 	mkdir -p "$pkgdir/usr/share/ghostty/shell-integration"
 	cp -r build/usr/share/ghostty/shell-integration/* "$pkgdir/usr/share/ghostty/shell-integration/"
+}
+
+package_ghostty-terminfo-git() {
+	pkgdesc='Terminfo for ghostty (xterm-ghostty only; g/ghostty is owned by ncurses)'
+	depends=(ncurses)
+	provides=("${pkgname%-git}=$pkgver")
+	conflicts=(${pkgname%-git})
+	cd "$_pkgbase"
+	install -Dm0644 build/usr/share/terminfo/x/xterm-ghostty \
+		"$pkgdir/usr/share/terminfo/x/xterm-ghostty"
 }
 
 package_ghostty-nautilus-git() {
