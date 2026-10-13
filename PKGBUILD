@@ -60,11 +60,11 @@ pkgver() {
 }
 
 build() {
-        cd "$_pkgbase"
+	cd "$_pkgbase"
+	export ZIG_GLOBAL_CACHE_DIR="$srcdir/zig-global-cache"
 	DESTDIR=build zig build \
 		--summary all \
 		--prefix "/usr" \
-		--system "$srcdir/zig-global-cache/p" \
 		-Doptimize=ReleaseFast \
 		-Dgtk-x11=true \
 		-Dcpu=baseline \
