@@ -45,8 +45,18 @@ prepare() {
 
 pkgver() {
 	cd "$_pkgbase"
-	git describe --long --tags --abbrev=7 --match="v*" HEAD |
-		sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
+	if ! git describe --tags --match="v*" HEAD &>/dev/null; then
+		git fetch --no-recurse-submodules \
+			https://github.com/ghostty-org/ghostty.git \
+			'refs/tags/v*:refs/tags/v*'
+	fi
+	if git describe --long --tags --abbrev=7 --match="v*" HEAD &>/dev/null; then
+		git describe --long --tags --abbrev=7 --match="v*" HEAD |
+			sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
+	else
+		# last resort: no tags reachable
+		printf '0.r%s.g%s' "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
+	fi
 }
 
 build() {
