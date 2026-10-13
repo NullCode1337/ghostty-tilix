@@ -5,7 +5,7 @@
 
 _pkgbase=ghostty-tilix
 _pkgbase2=ghostty
-pkgname=($_pkgbase2-git $_pkgbase2-shell-integration-git $_pkgbase2-terminfo-git $_pkgbase2-nautilus-git)
+pkgname=($_pkgbase2-git $_pkgbase2-shell-integration-git $_pkgbase2-nautilus-git)
 pkgrel=2
 pkgver=1.3.1.r1209.gd560c64
 pkgdesc="Fast, native, feature-rich terminal emulator pushing modern features"
@@ -26,11 +26,13 @@ depends=(bzip2
          oniguruma # libonig.so
          pixman
          wayland libwayland-client.so
+		 nautilus-python
          zlib)
 makedepends=(blueprint-compiler
              git
              pandoc-cli
-             'zig')
+             'zig>=0.16')
+options=(!debug)
 source=("git+$url.git"
         ghostty-llvm.patch)
 sha256sums=('SKIP'
@@ -45,6 +47,7 @@ prepare() {
 
 pkgver() {
 	cd "$_pkgbase"
+	# fork has no upstream tags; pull them in so describe works
 	if ! git describe --tags --match="v*" HEAD &>/dev/null; then
 		git fetch --no-recurse-submodules \
 			https://github.com/ghostty-org/ghostty.git \
@@ -54,7 +57,6 @@ pkgver() {
 		git describe --long --tags --abbrev=7 --match="v*" HEAD |
 			sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
 	else
-		# last resort: no tags reachable
 		printf '0.r%s.g%s' "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
 	fi
 }
@@ -75,8 +77,9 @@ build() {
 }
 
 package_ghostty-git() {
+	# terminfo (g/ghostty) is owned by ncurses
 	depends+=("${_pkgbase2}"-shell-integration-git
-	          "${_pkgbase2}"-terminfo-git)
+	          ncurses)
 	provides=("${pkgname%-git}=$pkgver")
 	conflicts=(${pkgname%-git})
 	optdepends+=("ghostty-nautilus: Open in Ghostty context menu in GNOME Files")
@@ -85,6 +88,7 @@ package_ghostty-git() {
 	install -Dm0644 -t "${pkgdir}/usr/share/licenses/$pkgname/" LICENSE
 	rm -r "$pkgdir"/usr/share/terminfo
 	rm -r "$pkgdir"/usr/share/ghostty/shell-integration
+	rm -r "$pkgdir"/usr/share/nautilus-python
 }
 
 package_ghostty-shell-integration-git() {
@@ -95,16 +99,6 @@ package_ghostty-shell-integration-git() {
 	cd "$_pkgbase"
 	mkdir -p "$pkgdir/usr/share/ghostty/shell-integration"
 	cp -r build/usr/share/ghostty/shell-integration/* "$pkgdir/usr/share/ghostty/shell-integration/"
-}
-
-package_ghostty-terminfo-git() {
-	pkgdesc='Terminfo for ghostty'
-	depends=()
-	provides=("${pkgname%-git}=$pkgver")
-	conflicts=(${pkgname%-git})
-	cd "$_pkgbase"
-	mkdir -p "$pkgdir/usr/share/terminfo"
-	cp -r build/usr/share/terminfo/* "$pkgdir/usr/share/terminfo/"
 }
 
 package_ghostty-nautilus-git() {
