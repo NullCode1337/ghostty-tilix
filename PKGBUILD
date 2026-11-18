@@ -48,13 +48,13 @@ prepare() {
 pkgver() {
 	cd "$_pkgbase"
 	# fork has no upstream tags; pull them in so describe works
-	if ! git describe --tags --match="v*" HEAD &>/dev/null; then
+	if ! git describe --tags --match="v[0-9]*" HEAD &>/dev/null; then
 		git fetch --no-recurse-submodules \
 			https://github.com/ghostty-org/ghostty.git \
 			'refs/tags/v*:refs/tags/v*'
 	fi
-	if git describe --long --tags --abbrev=7 --match="v*" HEAD &>/dev/null; then
-		git describe --long --tags --abbrev=7 --match="v*" HEAD |
+	if git describe --long --tags --abbrev=7 --match="v[0-9]*" HEAD &>/dev/null; then
+		git describe --long --tags --abbrev=7 --match="v[0-9]*" HEAD |
 			sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
 	else
 		printf '0.r%s.g%s' "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
