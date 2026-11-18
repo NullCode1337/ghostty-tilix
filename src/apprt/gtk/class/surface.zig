@@ -2316,8 +2316,9 @@ pub const Surface = extern struct {
         const padding_x = config.@"window-padding-x";
         const padding_y = config.@"window-padding-y";
 
+        // Like Tilix, keep two columns and one row of text visible.
         priv.split_min_size = .{
-            .width = cell_width +
+            .width = cell_width * 2 +
                 padding(padding_x.top_left) +
                 padding(padding_x.bottom_right),
             .height = cell_height +
