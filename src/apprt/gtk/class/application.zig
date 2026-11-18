@@ -3373,7 +3373,7 @@ fn loadAdwCss(alloc: Allocator, display: *gdk.Display) void {
     // dark theme (e.g. "Breeze-Dark") gets libadwaita's dark style.
     const theme = std.c.getenv("GTK_THEME") orelse return;
     const filtered = adw_css.filter(alloc, ptr[0..len], .{
-        .dark = std.ascii.indexOfIgnoreCase(std.mem.span(theme), "dark") != null,
+        .dark = std.ascii.findIgnoreCase(std.mem.span(theme), "dark") != null,
     }) catch |err| {
         log.warn("unable to filter libadwaita stylesheet err={}", .{err});
         return;
@@ -3490,7 +3490,7 @@ fn setGtkEnv(config: *const CoreConfig) std.Io.Writer.Error!void {
         // Remember the original value so we can restore it for child
         // processes. We dupe it because setenv may invalidate it.
         const original: ?[:0]const u8 = if (std.c.getenv("GTK_THEME")) |v|
-            std.heap.c_allocator.dupeZ(u8, std.mem.span(v)) catch break :theme
+            std.heap.c_allocator.dupeSentinel(u8, std.mem.span(v), 0) catch break :theme
         else
             null;
         log.info("setting GTK_THEME={s}", .{theme});
